@@ -5,9 +5,9 @@ const ctx = canvas.getContext("2d");
 const DURACAO = 150;
 const BPM = 120;
 const BEAT = 60 / BPM;
+const PENALIDADE_ERRO = 6;
 
 const SETAS = ["←", "↓", "↑", "→"];
-
 const CORES = ["#c24cf6", "#00c8ff", "#12e04a", "#ff3b3b"];
 
 const TECLAS = {
@@ -27,8 +27,6 @@ const CONFIG = {
     velocidade: 280,
     passo: 1,
     chance: 0.65,
-    penalidade: 3,
-    erroFantasma: 1,
     recuperacao: 2,
     tolerancia: 0.19
   },
@@ -36,8 +34,6 @@ const CONFIG = {
     velocidade: 390,
     passo: 0.5,
     chance: 0.82,
-    penalidade: 6,
-    erroFantasma: 2,
     recuperacao: 1.5,
     tolerancia: 0.15
   },
@@ -45,8 +41,6 @@ const CONFIG = {
     velocidade: 540,
     passo: 0.25,
     chance: 0.94,
-    penalidade: 12,
-    erroFantasma: 5,
     recuperacao: 1,
     tolerancia: 0.11
   }
@@ -57,6 +51,7 @@ let esquemaControles = "setas";
 let dificuldade = "facil";
 let config = CONFIG.facil;
 
+
 const PERSONAGENS = {
   lula: {
     nome: "LULA",
@@ -65,14 +60,24 @@ const PERSONAGENS = {
     roupa: "#d1001c",
     cabelo: "#eeeeee"
   },
+
   flavio: {
     nome: "FLÁVIO",
     cor: "#174dba",
     corClara: "#4595ff",
     roupa: "#17233d",
     cabelo: "#302018"
+  },
+
+  trump: {
+    nome: "TRUMP",
+    cor: "#1745a0",
+    corClara: "#4595ff",
+    roupa: "#173b85",
+    cabelo: "#e6b94c"
   }
 };
+
 
 let jogador = PERSONAGENS.lula;
 let inimigo = PERSONAGENS.flavio;
@@ -102,6 +107,7 @@ const RECEPTOR_Y = 420;
 
 // SELEÇÃO DE PERSONAGEM
 
+
 document.querySelectorAll(".personagem").forEach(botao => {
   botao.addEventListener("click", () => {
     if (estado === "jogando") return;
@@ -115,14 +121,15 @@ document.querySelectorAll(".personagem").forEach(botao => {
 
     jogador = PERSONAGENS[personagem];
 
-    inimigo = personagem === "lula"
-      ? PERSONAGENS.flavio
-      : PERSONAGENS.lula;
+    inimigo = Object.values(PERSONAGENS).find(
+      p => p.nome !== jogador.nome
+    );
 
     document.getElementById("descricaoPersonagem").textContent =
       `Você controla ${jogador.nome}. ${inimigo.nome} será seu adversário!`;
   });
 });
+
 
 // SELEÇÃO DE TECLAS
 
@@ -151,9 +158,9 @@ document.querySelectorAll(".controle").forEach(botao => {
 // SELEÇÃO DE DIFICULDADE
 
 const DESCRICOES = {
-  facil: "Notas lentas, menos setas e penalidades pequenas.",
-  normal: "Velocidade intermediária, mais notas e penalidades maiores.",
-  dificil: "Notas muito rápidas, muitas setas e penalidades pesadas!"
+  facil: "Notas lentas, menos setas e penalidade fixa de 6 pontos.",
+  normal: "Velocidade intermediária, mais notas e penalidade fixa de 6 pontos.",
+  dificil: "Notas muito rápidas, muitas setas e penalidade fixa de 6 pontos!"
 };
 
 document.querySelectorAll(".dificuldade").forEach(botao => {
@@ -252,6 +259,7 @@ function gerarNotas() {
 
 // INICIAR JOGO
 
+
 function iniciar() {
   if (!audio) {
     audio = new (window.AudioContext || window.webkitAudioContext)();
@@ -261,9 +269,9 @@ function iniciar() {
 
   jogador = PERSONAGENS[personagem];
 
-  inimigo = personagem === "lula"
-    ? PERSONAGENS.flavio
-    : PERSONAGENS.lula;
+  inimigo = Object.values(PERSONAGENS).find(
+    p => p.nome !== jogador.nome
+  );
 
   config = CONFIG[dificuldade];
 
@@ -277,6 +285,9 @@ function iniciar() {
   animJogador = 0;
   animInimigo = 0;
 
+  feedbackTempo = 0;
+  feedback = "";
+
   teclasAtivas.fill(false);
 
   inicioTempo = performance.now() / 1000 + 1.5;
@@ -288,11 +299,15 @@ function iniciar() {
 
   document.getElementById("nomeJogador").textContent = jogador.nome;
   document.getElementById("nomeInimigo").textContent = inimigo.nome;
-  document.getElementById("nivel").textContent = dificuldade.toUpperCase();
+
+  document.getElementById("nivel").textContent =
+    dificuldade.toUpperCase();
 
   mostrarFeedback("PREPARE-SE!");
+
   atualizarPainel();
 }
+
 
 // TEMPO
 
@@ -302,11 +317,12 @@ function tempoAtual() {
 
 // FEEDBACK
 
+
 function mostrarFeedback(texto) {
   feedback = texto;
   feedbackTempo = 0.65;
-  document.getElementById("feedback").textContent = texto;
 }
+
 
 // ACERTAR SETAS
 
@@ -350,7 +366,7 @@ function apertar(lane) {
     somAcerto(lane);
   } else {
     combo = 0;
-    energia -= config.erroFantasma;
+    energia -= PENALIDADE_ERRO;
 
     mostrarFeedback("ERROU!");
     somErro();
@@ -390,21 +406,24 @@ document.addEventListener("keyup", e => {
 
 // BOTÕES DE TOQUE
 
-document.querySelectorAll(".teclas-mobile button")
-.forEach(botao => {
+
+document.querySelectorAll(".teclas-mobile button").forEach(botao => {
+  const lane = Number(botao.dataset.lane);
+
   botao.addEventListener("pointerdown", e => {
     e.preventDefault();
-    apertar(Number(botao.dataset.lane));
+    apertar(lane);
   });
 
-  botao.addEventListener("pointerup", () => {
-    teclasAtivas[Number(botao.dataset.lane)] = false;
-  });
+  function soltar() {
+    teclasAtivas[lane] = false;
+  }
 
-  botao.addEventListener("pointerleave", () => {
-    teclasAtivas[Number(botao.dataset.lane)] = false;
-  });
+  botao.addEventListener("pointerup", soltar);
+  botao.addEventListener("pointerleave", soltar);
+  botao.addEventListener("pointercancel", soltar);
 });
+
 
 // ATUALIZAR JOGO
 
@@ -432,7 +451,7 @@ function atualizar(dt) {
     if (agora > n.t + config.tolerancia) {
       n.feita = true;
       combo = 0;
-      energia -= config.penalidade;
+      energia -= PENALIDADE_ERRO;
 
       mostrarFeedback("MISS!");
       somErro();
@@ -457,16 +476,27 @@ function atualizar(dt) {
 
 // PAINEL
 
+
 function atualizarPainel() {
   document.getElementById("pontos").textContent = pontos;
+
   document.getElementById("combo").textContent = combo;
+
+  document.getElementById("recorde").textContent = recorde;
+
+  
+  const tempoDecorrido = estado === "jogando"
+    ? Math.max(0, tempoAtual())
+    : 0;
 
   const restante = Math.max(
     0,
-    Math.ceil(DURACAO - Math.max(0, tempoAtual()))
+    Math.ceil(DURACAO - tempoDecorrido)
   );
 
+
   const minutos = Math.floor(restante / 60);
+
   const segundos = String(restante % 60).padStart(2, "0");
 
   document.getElementById("tempo").textContent =
@@ -475,8 +505,9 @@ function atualizarPainel() {
   document.getElementById("nivel").textContent =
     dificuldade.toUpperCase();
 
-  document.getElementById("energia").style.width =
-    Math.max(0, energia) + "%";
+  const barra = document.getElementById("energia");
+
+  barra.style.width = Math.max(0, energia) + "%";
 
   const cor = energia < 25
     ? "#ff2222"
@@ -484,18 +515,23 @@ function atualizarPainel() {
     ? "#ffd400"
     : "#19ef65";
 
-  document.getElementById("energia").style.background = cor;
+  barra.style.background = cor;
 }
 
+
 // FINALIZAR PARTIDA
+
 
 function terminar(venceu) {
   estado = "fim";
 
   if (pontos > recorde) {
     recorde = pontos;
+
     localStorage.setItem("debateRecorde", recorde);
   }
+
+  document.getElementById("recorde").textContent = recorde;
 
   document.getElementById("tituloFim").textContent =
     venceu
@@ -508,10 +544,12 @@ function terminar(venceu) {
       : `Sua energia acabou antes do fim da batalha contra ${inimigo.nome}!`;
 
   document.getElementById("pontuacaoFinal").textContent = pontos;
+
   document.getElementById("recordeFinal").textContent = recorde;
 
   document.getElementById("fim").classList.remove("escondido");
 }
+
 
 // BOTÕES
 
@@ -791,11 +829,20 @@ function loop(timestamp) {
 
 // ESTADO INICIAL
 
+
 jogador = PERSONAGENS.lula;
 inimigo = PERSONAGENS.flavio;
 
 document.getElementById("nivel").textContent = "FÁCIL";
 
+document.getElementById("nomeJogador").textContent = jogador.nome;
+document.getElementById("nomeInimigo").textContent = inimigo.nome;
+
+document.getElementById("recorde").textContent = recorde;
+
+atualizarPainel();
+
 desenhar();
 
 requestAnimationFrame(loop);
+
