@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Political Showdown: World at War</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="game">
+
+  <header class="topo">
+    <h1>POLITICAL SHOWDOWN</h1>
+    <p>WORLD AT WAR</p>
+  </header>
+
+  <section id="menu" class="overlay">
+
+    <h2>POLITICAL SHOWDOWN: </h2>
+    <h2>WORLD AT WAR</h2>
+    <p>Escolha seu candidato e prepare-se para a batalha!</p>
+
+    <h3>1. Quem você quer controlar?</h3>
+
+    <div class="opcoes">
+      <button class="opcao personagem selecionado" data-personagem="lula">
+        🔴 LULA
+      </button>
+
+      <button class="opcao personagem" data-personagem="flavio">
+        🔵 FLÁVIO
+      </button>
+    </div>
+
+    <p id="descricaoPersonagem">
+      Você controla Lula. Flávio será seu adversário!
+    </p>
+
+    <h3>2. Escolha suas teclas</h3>
+
+    <div class="opcoes">
+      <button class="opcao controle selecionado" data-controle="setas">
+        ← ↓ ↑ → SETAS
+      </button>
+
+      <button class="opcao controle" data-controle="wasd">
+        W A S D
+      </button>
+
+      <button class="opcao controle" data-controle="dfjk">
+        D F J K
+      </button>
+    </div>
+
+    <p id="descricaoControles">
+      Controles: SETAS
+    </p>
+
+    <h3>3. Escolha a dificuldade</h3>
+
+    <div class="opcoes">
+      <button class="opcao dificuldade selecionado" data-dif="facil">
+        🟢 FÁCIL
+      </button>
+
+      <button class="opcao dificuldade" data-dif="normal">
+        🟡 NORMAL
+      </button>
+
+      <button class="opcao dificuldade" data-dif="dificil">
+        🔴 DIFÍCIL
+      </button>
+    </div>
+
+    <p id="descricaoDificuldade">
+      Notas lentas e penalidades pequenas.
+    </p>
+
+    <div class="resumo">
+      <span>⏱ Duração: 2 minutos e 30 segundos</span>
+      <span>🎮 Escolha suas configurações antes de jogar</span>
+    </div>
+
+    <button id="jogar" class="botao-principal">
+      COMEÇAR BATALHA!
+    </button>
+
+  </section>
+
+  <section class="painel">
+
+    <div class="info">
+      <span>PONTOS</span>
+      <strong id="pontos">0</strong>
+    </div>
+
+    <div class="info">
+      <span>COMBO</span>
+      <strong id="combo">0</strong>
+    </div>
+
+    <div class="info">
+      <span>TEMPO</span>
+      <strong id="tempo">2:30</strong>
+    </div>
+
+    <div class="info">
+      <span>DIFICULDADE</span>
+      <strong id="nivel">FÁCIL</strong>
+    </div>
+
+  </section>
+
+  <canvas id="tela" width="960" height="540"></canvas>
+
+  <div class="energia-container">
+    <span id="nomeInimigo">FLÁVIO</span>
+
+    <div class="energia-fundo">
+      <div id="energia"></div>
+    </div>
+
+    <span id="nomeJogador">LULA</span>
+  </div>
+
+  <div id="feedback"></div>
+
+  <div class="teclas-mobile">
+    <button data-lane="0">←</button>
+    <button data-lane="1">↓</button>
+    <button data-lane="2">↑</button>
+    <button data-lane="3">→</button>
+  </div>
+
+  <section id="fim" class="overlay escondido">
+
+    <h2 id="tituloFim">FIM DE JOGO!</h2>
+
+    <p id="mensagemFim"></p>
+
+    <div class="resultado">
+      <p>Pontuação: <strong id="pontuacaoFinal">0</strong></p>
+      <p>Recorde: <strong id="recordeFinal">0</strong></p>
+    </div>
+
+    <button id="novamente" class="botao-principal">
+      JOGAR NOVAMENTE
+    </button>
+
+    <button id="voltarMenu" class="botao-secundario">
+      VOLTAR ÀS CONFIGURAÇÕES
+    </button>
+
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
